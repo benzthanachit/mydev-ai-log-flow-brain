@@ -15,6 +15,7 @@ export default function HistoryOverview() {
   const [leaveStatuses, setLeaveStatuses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [month, setMonth] = useState<Date>(new Date());
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const router = useRouter();
 
@@ -42,6 +43,12 @@ export default function HistoryOverview() {
     if (!selectedDate) return;
     const dStr = selectedDate.toLocaleDateString('sv-SE');
     router.push(`/log/${dStr}`);
+  };
+
+  const handleGoToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+    setMonth(today);
   };
 
   if (loading) {
@@ -90,16 +97,25 @@ export default function HistoryOverview() {
             <p className="text-zinc-500">Select a date to view, add logs, or manage your leave status.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <Card className="flex justify-center p-4">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(d) => d && setSelectedDate(d)}
-                className="rounded-md"
-                modifiers={modifiers}
-                modifiersClassNames={modifiersClassNames}
-              />
+          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-8 items-start">
+            <Card className="flex flex-col p-4 md:p-6 w-full">
+              <div className="flex justify-end mb-4">
+                <Button variant="outline" size="sm" onClick={handleGoToToday}>
+                  Go to Today
+                </Button>
+              </div>
+              <div className="flex justify-center w-full">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => d && setSelectedDate(d)}
+                  month={month}
+                  onMonthChange={setMonth}
+                  className="w-full rounded-md [--cell-size:3rem] sm:[--cell-size:3.5rem] md:[--cell-size:4.5rem]"
+                  modifiers={modifiers}
+                  modifiersClassNames={modifiersClassNames}
+                />
+              </div>
             </Card>
 
             <div className="space-y-6">
