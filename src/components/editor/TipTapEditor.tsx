@@ -155,7 +155,7 @@ export function TipTapEditor({ documentId }: TipTapEditorProps) {
       }
     },
     onUpdate: ({ editor }) => {
-      const markdown = editor.storage.markdown.getMarkdown();
+      const markdown = (editor.storage as any).markdown.getMarkdown();
       saveContent(markdown);
     },
   });
@@ -175,10 +175,10 @@ export function TipTapEditor({ documentId }: TipTapEditorProps) {
         }
       } else if (res && res.content) {
         if (!content || content.length < 5) {
-          editor.commands.setContent(res.content, false);
+          editor.commands.setContent(res.content, false as any);
           saveContent(res.content);
         }
-        setGithubSha(res.sha);
+        setGithubSha(res.sha || null);
       }
       setSyncing(false);
     }
@@ -189,10 +189,10 @@ export function TipTapEditor({ documentId }: TipTapEditorProps) {
   const handleCommit = async () => {
     if (!editor) return;
     setSyncing(true);
-    const markdown = editor.storage.markdown.getMarkdown();
+    const markdown = (editor.storage as any).markdown.getMarkdown();
     const res = await commitLogFile(documentId, markdown, githubSha || undefined);
     if (res.success) {
-      setGithubSha(res.sha);
+      setGithubSha(res.sha || null);
       alert('Synced to GitHub successfully!');
     } else {
       alert(`Error syncing: ${res.error}`);
@@ -204,7 +204,7 @@ export function TipTapEditor({ documentId }: TipTapEditorProps) {
     if (!editor) return;
     setGenerating(true);
     setStandupModalOpen(true);
-    const markdown = editor.storage.markdown.getMarkdown();
+    const markdown = (editor.storage as any).markdown.getMarkdown();
     const res = await generateStandup(markdown);
     if (res.standup) {
       setStandupDraft(res.standup);

@@ -107,13 +107,13 @@ export function RichTextInput({ id, placeholder = 'Type here...', buttonText, on
       }
     },
     onUpdate: ({ editor }) => {
-      saveContent(editor.storage.markdown.getMarkdown());
+      saveContent((editor.storage as any).markdown.getMarkdown());
     },
   });
 
   const handleSubmit = async () => {
     if (!editor) return;
-    const markdown = editor.storage.markdown.getMarkdown();
+    const markdown = (editor.storage as any).markdown.getMarkdown();
     if (!markdown.trim()) return;
     
     setSubmitting(true);
