@@ -35,6 +35,7 @@ create table public.logs (
   entry_type text not null check (entry_type in ('daily', 'log', 'summary')),
   content text not null, -- The rich text content
   embedding vector(3072), -- Gemini 2.5 uses 3072 dimensions
+  log_date date not null default CURRENT_DATE, -- Explicit date for the log
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -56,6 +57,30 @@ create policy "Users can delete their own logs."
 create policy "Users can update their own logs."
   on logs for update
   using ( auth.uid() = user_id );
+
+-- Create daily_status table for leaves
+create table public.daily_status (
+  id bigserial primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  date date not null,
+  status text not null check (status in ('work', 'sick', 'vacation', 'personal')),
+  unique(user_id, date)
+);
+
+-- Set up RLS for daily_status
+alter table public.daily_status enable row level security;
+
+create policy "Users can view their own status."
+  on daily_status for select using ( auth.uid() = user_id );
+
+create policy "Users can insert their own status."
+  on daily_status for insert with check ( auth.uid() = user_id );
+
+create policy "Users can update their own status."
+  on daily_status for update using ( auth.uid() = user_id );
+
+create policy "Users can delete their own status."
+  on daily_status for delete using ( auth.uid() = user_id );
 
 -- Create a function to search for logs (RAG)
 create or replace function match_logs (

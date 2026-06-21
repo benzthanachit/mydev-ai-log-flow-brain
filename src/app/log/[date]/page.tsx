@@ -34,7 +34,7 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
   }, [dateString]);
 
   const handleSave = async (type: LogType, content: string) => {
-    const res = await saveLogEntry(type, content);
+    const res = await saveLogEntry(type, content, dateString);
     if (res.success) {
       await loadLogs();
       if (type === 'daily' || type === 'summary') {
@@ -151,17 +151,13 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
             </div>
           )
         ) : (
-          isToday ? (
             <RichTextInput 
               id="morning-daily"
-              placeholder="What is your goal for today? (e.g. [Doing] Fix bug A)"
+              placeholder="What is your goal for this day? (e.g. [Doing] Fix bug A)"
               buttonText="Save & Push Daily"
               onSubmit={(content) => handleSave('daily', content)}
               minHeight="min-h-[120px]"
             />
-          ) : (
-            <p className="text-sm text-zinc-500 italic">No morning daily recorded for this date.</p>
-          )
         )}
       </section>
 
@@ -203,22 +199,20 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
           </div>
         ))}
 
-        {isToday && (
-          <div className="flex gap-6 relative">
+        <div className="flex gap-6 relative">
              <div className="w-16 flex-shrink-0 flex flex-col items-center pt-5">
                 <div className="w-4 h-4 rounded-full bg-blue-500 ring-4 ring-white dark:ring-black z-10 animate-pulse" />
              </div>
              <div className="flex-1">
                <RichTextInput 
                   id="quick-log"
-                  placeholder="What are you working on right now? (Voice memo works too!)"
+                  placeholder="What are you working on? (Voice memo works too!)"
                   buttonText="Post Log"
                   onSubmit={(content) => handleSave('log', content)}
                   minHeight="min-h-[80px]"
                 />
              </div>
           </div>
-        )}
       </section>
 
       {/* Evening Summary Section */}
@@ -255,17 +249,13 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
             </div>
           )
         ) : (
-          isToday ? (
             <RichTextInput 
               id="evening-summary"
-              placeholder="Summarize today's progress... (e.g. Completed Task A, blocked by B)"
+              placeholder="Summarize this day's progress... (e.g. Completed Task A, blocked by B)"
               buttonText="Save Summary"
               onSubmit={(content) => handleSave('summary', content)}
               minHeight="min-h-[150px]"
             />
-          ) : (
-            <p className="text-sm text-zinc-500 italic">No evening summary recorded for this date.</p>
-          )
         )}
       </section>
       </div>
