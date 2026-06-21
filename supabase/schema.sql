@@ -34,7 +34,7 @@ create table public.logs (
   user_id uuid references public.profiles(id) on delete cascade not null,
   entry_type text not null check (entry_type in ('daily', 'log', 'summary')),
   content text not null, -- The rich text content
-  embedding vector(768), -- Gemini uses 768 dimensions for text-embedding-004
+  embedding vector(3072), -- Gemini 2.5 uses 3072 dimensions
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -53,9 +53,13 @@ create policy "Users can delete their own logs."
   on logs for delete
   using ( auth.uid() = user_id );
 
+create policy "Users can update their own logs."
+  on logs for update
+  using ( auth.uid() = user_id );
+
 -- Create a function to search for logs (RAG)
 create or replace function match_logs (
-  query_embedding vector(768),
+  query_embedding vector(3072),
   match_threshold float,
   match_count int,
   p_user_id uuid

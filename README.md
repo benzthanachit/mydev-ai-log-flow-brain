@@ -7,7 +7,7 @@ Log-Flow is a Continuous-stream journaling application that acts as your AI Stan
 - Tailwind CSS & shadcn/ui
 - TipTap (Markdown Editor)
 - Supabase (Auth, PostgreSQL, pgvector, Storage)
-- Gemini 1.5 Flash & text-embedding-004 (AI & RAG)
+- Gemini 2.5 Flash & gemini-embedding-2 (AI & RAG)
 - Octokit (GitHub API)
 
 ## 📦 Setup Instructions

@@ -80,7 +80,7 @@ export async function pushToSlack(message: string) {
 export async function generateEmbedding(text: string) {
   try {
     const { genAI } = await getGeminiService();
-    const model = genAI.getGenerativeModel({ model: "text-embedding-004" });
+    const model = genAI.getGenerativeModel({ model: "gemini-embedding-2" });
     const result = await model.embedContent(text);
     return { embedding: result.embedding.values };
   } catch (error: any) {

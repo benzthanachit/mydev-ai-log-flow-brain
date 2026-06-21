@@ -11,6 +11,12 @@ export async function saveLogEntry(type: LogType, content: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
+    // Ensure profile exists before inserting (in case they haven't visited settings yet)
+    const { data: profile } = await supabase.from('profiles').select('id').eq('id', user.id).single();
+    if (!profile) {
+      await supabase.from('profiles').insert({ id: user.id, email: user.email });
+    }
+
     const { embedding } = await generateEmbedding(content);
 
     const { data, error } = await supabase.from('logs').insert({
@@ -24,6 +30,30 @@ export async function saveLogEntry(type: LogType, content: string) {
     return { success: true, log: data };
   } catch (error: any) {
     console.error('Error saving log:', error);
+    return { error: error.message };
+  }
+}
+
+export async function updateLogEntry(id: bigint, content: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { embedding } = await generateEmbedding(content);
+
+    const { data, error } = await supabase.from('logs').update({
+      content,
+      embedding: embedding || null,
+    })
+    .eq('id', id)
+    .eq('user_id', user.id) // security check
+    .select().single();
+
+    if (error) throw error;
+    return { success: true, log: data };
+  } catch (error: any) {
+    console.error('Error updating log:', error);
     return { error: error.message };
   }
 }

@@ -43,10 +43,12 @@ interface RichTextInputProps {
   buttonText: string;
   onSubmit: (content: string) => Promise<void>;
   minHeight?: string;
+  initialContent?: string;
+  onCancel?: () => void;
 }
 
-export function RichTextInput({ id, placeholder = 'Type here...', buttonText, onSubmit, minHeight = 'min-h-[150px]' }: RichTextInputProps) {
-  const { content, saveContent } = useLocalSync(id, '');
+export function RichTextInput({ id, placeholder = 'Type here...', buttonText, onSubmit, minHeight = 'min-h-[150px]', initialContent, onCancel }: RichTextInputProps) {
+  const { content, saveContent } = useLocalSync(id, initialContent || '');
   const [submitting, setSubmitting] = useState(false);
   const [recording, setRecording] = useState(false);
   const [processingAudio, setProcessingAudio] = useState(false);
@@ -180,9 +182,16 @@ export function RichTextInput({ id, placeholder = 'Type here...', buttonText, on
           {recording ? <MicOff size={14} /> : <Mic size={14} />}
           {recording ? 'Stop Recording' : 'Voice Memo'}
         </Button>
-        <Button size="sm" onClick={handleSubmit} disabled={submitting || processingAudio}>
-          {submitting ? 'Saving...' : buttonText}
-        </Button>
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button size="sm" variant="outline" onClick={onCancel} disabled={submitting || processingAudio}>
+              Cancel
+            </Button>
+          )}
+          <Button size="sm" onClick={handleSubmit} disabled={submitting || processingAudio}>
+            {submitting ? 'Saving...' : buttonText}
+          </Button>
+        </div>
       </div>
     </div>
   );
