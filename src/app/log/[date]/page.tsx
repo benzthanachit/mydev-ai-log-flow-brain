@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import { RichTextInput } from '@/components/editor/RichTextInput';
-import { fetchLogsForDate, saveLogEntry, updateLogEntry, type LogType } from '@/app/actions/logs';
+import { fetchLogsForDate, saveLogEntry, updateLogEntry, type LogType, fetchLatestSummary } from '@/app/actions/logs';
 import { backupDailyToGithub } from '@/app/actions/github';
 import { pushToSlack } from '@/app/actions/ai';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
   const [backingUp, setBackingUp] = useState(false);
   const [pushingSlack, setPushingSlack] = useState(false);
   const [editingLogId, setEditingLogId] = useState<number | null>(null);
+  const [autofillContent, setAutofillContent] = useState('');
 
   const { date: dateString } = use(params);
   
@@ -23,8 +24,20 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
   const isToday = new Date().toLocaleDateString('sv-SE') === dateString;
 
   const loadLogs = async () => {
+    setAutofillContent('');
     const res = await fetchLogsForDate(dateString);
-    if (res.logs) setLogs(res.logs);
+    if (res.logs) {
+      setLogs(res.logs);
+      
+      const dailyExists = res.logs.some(l => l.entry_type === 'daily');
+      if (!dailyExists) {
+        const summaryRes = await fetchLatestSummary(dateString);
+        if (summaryRes.summary) {
+          const formattedContent = `### Yesterday\n${summaryRes.summary.content}\n\n### Today\n- `;
+          setAutofillContent(formattedContent);
+        }
+      }
+    }
     setLoading(false);
   };
 
@@ -153,6 +166,7 @@ export default function LogDatePage({ params }: { params: Promise<{ date: string
         ) : (
             <RichTextInput 
               id="morning-daily"
+              initialContent={autofillContent}
               placeholder="What is your goal for this day? (e.g. [Doing] Fix bug A)"
               buttonText="Save & Push Daily"
               onSubmit={(content) => handleSave('daily', content)}

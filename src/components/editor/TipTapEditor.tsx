@@ -250,7 +250,7 @@ export function TipTapEditor({ documentId }: TipTapEditorProps) {
             setGenerating(true);
             const res = await transcribeAudio(base64Audio);
             if (res.text && editor) {
-              editor.commands.insertContent(`\n🎙️ *Voice Memo:* ${res.text}\n`);
+              editor.commands.insertContent(res.text);
             } else {
               alert('Error transcribing audio: ' + res.error);
             }

@@ -145,7 +145,7 @@ export function RichTextInput({ id, placeholder = 'Type here...', buttonText, on
             setProcessingAudio(true);
             const res = await transcribeAudio(base64Audio);
             if (res.text && editor) {
-              editor.commands.insertContent(`\n🎙️ *Voice Memo:* ${res.text}\n`);
+              editor.commands.insertContent(res.text);
             } else {
               alert('Error transcribing audio: ' + res.error);
             }
