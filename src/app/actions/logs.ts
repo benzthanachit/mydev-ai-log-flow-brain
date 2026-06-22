@@ -134,3 +134,28 @@ export async function setDailyStatus(dateString: string, status: DailyStatus) {
     return { error: error.message };
   }
 }
+
+export async function fetchLatestSummary(beforeDate: string) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('logs')
+      .select('content, log_date')
+      .eq('user_id', user.id)
+      .eq('entry_type', 'summary')
+      .lt('log_date', beforeDate)
+      .order('log_date', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return { summary: data };
+  } catch (error: any) {
+    console.error('Error fetching latest summary:', error);
+    return { error: error.message };
+  }
+}
+

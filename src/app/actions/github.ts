@@ -85,3 +85,40 @@ export async function backupDailyToGithub() {
     return { error: error.message };
   }
 }
+
+export async function fetchLogFile(path: string) {
+  try {
+    const { octokit, owner, repo } = await getGithubService();
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+    });
+
+    if (!Array.isArray(response.data) && response.data.type === 'file') {
+      const content = Buffer.from(response.data.content, 'base64').toString('utf8');
+      return { content, sha: response.data.sha };
+    }
+    return { error: 'Not a file' };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+export async function commitLogFile(path: string, content: string, sha?: string) {
+  try {
+    const { octokit, owner, repo } = await getGithubService();
+    const response = await octokit.rest.repos.createOrUpdateFileContents({
+      owner,
+      repo,
+      path,
+      message: `docs: update log file ${path}`,
+      content: Buffer.from(content).toString('base64'),
+      sha,
+    });
+    return { success: true, sha: response.data.content?.sha };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+}
+

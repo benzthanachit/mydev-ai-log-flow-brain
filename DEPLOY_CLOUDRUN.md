@@ -1,11 +1,8 @@
 # Deploying Next.js to Google Cloud Run (from Macbook M4)
 
-Since you are using a **Macbook M4 (Apple Silicon / ARM64 architecture)**, you have two main choices when building your Docker image for Google Cloud Run:
+Since you are using a **Macbook M4 (Apple Silicon / ARM64 architecture)**, you must build your Docker image for the **`linux/amd64`** architecture. Google Cloud Run requires container images to be compatible with `amd64/linux` to run properly.
 
-1. **(Recommended)** Build as `linux/arm64` locally, and configure your Cloud Run service to use ARM (which is generally cheaper and faster).
-2. Build as `linux/amd64` using `docker buildx` (emulation), which can be very slow to build locally.
-
-This guide uses the **Recommended (ARM64)** approach.
+This guide uses the **`linux/amd64`** build approach.
 
 ---
 
@@ -46,9 +43,9 @@ gcloud auth configure-docker asia-southeast1-docker.pkg.dev
 
 ---
 
-## 🐳 Step 3: Build Docker Image บน Mac M4 (ARM64)
+## 🐳 Step 3: Build Docker Image บน Mac M4 (AMD64)
 
-ด้วยชิป M4 เราจะ Build Image บน ARM64 ซึ่ง Build ได้เร็วปรี๊ดด:
+ด้วยชิป M4 เราจะ Build Image แบบ `linux/amd64` (ผ่าน emulation) เพื่อให้สามารถรันบน Cloud Run ได้:
 
 ```bash
 # ตั้งค่าตัวแปร (เพื่อความง่ายในการก็อปวาง)
@@ -59,8 +56,15 @@ export IMAGE_NAME=logflow-app
 export IMAGE_TAG=v1
 export IMAGE_URL=$REGION-docker.pkg.dev/$PROJECT_ID/$REPO/$IMAGE_NAME:$IMAGE_TAG
 
-# สั่ง Build Image ด้วยสถาปัตยกรรม arm64 
-docker build --platform linux/arm64 -t $IMAGE_URL .
+# ดึงค่าจาก .env.local มาตั้งเป็นตัวแปรแวดล้อม
+export NEXT_PUBLIC_SUPABASE_URL=$(grep NEXT_PUBLIC_SUPABASE_URL .env.local | cut -d '=' -f2)
+export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(grep NEXT_PUBLIC_SUPABASE_ANON_KEY .env.local | cut -d '=' -f2)
+
+# สั่ง Build Image ด้วยสถาปัตยกรรม amd64 โดยส่งผ่านตัวแปร Supabase เข้าไปด้วย
+docker build --platform linux/amd64 \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
+  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY \
+  -t $IMAGE_URL .
 ```
 
 > **Note:** โค้ดในส่วนนี้ได้เตรียม `Dockerfile`, `.dockerignore` และตั้งค่า `output: "standalone"` ใน `next.config.ts` เพื่อให้ Image มีขนาดเล็กลงเรียบร้อยแล้วครับ
@@ -74,7 +78,7 @@ docker build --platform linux/arm64 -t $IMAGE_URL .
 docker push $IMAGE_URL
 
 # 2. Deploy ขึ้น Cloud Run
-# เราจะบังคับใช้ CPU แบบ ARM (--execution-environment gen2)
+# เราจะเลือกใช้ Execution Environment Gen 2 (--execution-environment gen2)
 # และห้ามลืมใส่ตัวแปร Environment Variables ของคุณ (Supabase) ด้วย!
 gcloud run deploy logflow-service \
   --image=$IMAGE_URL \

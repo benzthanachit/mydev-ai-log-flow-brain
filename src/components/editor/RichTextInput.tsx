@@ -107,13 +107,13 @@ export function RichTextInput({ id, placeholder = 'Type here...', buttonText, on
       }
     },
     onUpdate: ({ editor }) => {
-      saveContent(editor.storage.markdown.getMarkdown());
+      saveContent((editor.storage as any).markdown.getMarkdown());
     },
   });
 
   const handleSubmit = async () => {
     if (!editor) return;
-    const markdown = editor.storage.markdown.getMarkdown();
+    const markdown = (editor.storage as any).markdown.getMarkdown();
     if (!markdown.trim()) return;
     
     setSubmitting(true);
@@ -145,7 +145,7 @@ export function RichTextInput({ id, placeholder = 'Type here...', buttonText, on
             setProcessingAudio(true);
             const res = await transcribeAudio(base64Audio);
             if (res.text && editor) {
-              editor.commands.insertContent(`\n🎙️ *Voice Memo:* ${res.text}\n`);
+              editor.commands.insertContent(res.text);
             } else {
               alert('Error transcribing audio: ' + res.error);
             }
